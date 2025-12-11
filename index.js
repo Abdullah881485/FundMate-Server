@@ -121,6 +121,55 @@ async function run() {
 
             res.send(result);
         });
+        app.get("/allLoan", async (req, res) => {
+            const cursor = loanCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+
+        app.get("/loanDetails/:id", async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await loanCollection.findOne(query)
+            res.send(result)
+        })
+        app.get("/users", async (req, res) => {
+            try {
+                const page = parseInt(req.query.page) || 1;
+                const limit = parseInt(req.query.limit) || 10;
+                const skip = (page - 1) * limit;
+
+                const users = await userCollection
+                    .find()
+                    .skip(skip)
+                    .limit(limit)
+                    .toArray();
+
+                const totalUsers = await userCollection.countDocuments();
+
+                res.send({
+                    users,
+                    totalUsers,
+                    page,
+                    totalPages: Math.ceil(totalUsers / limit),
+                });
+
+            } catch (error) {
+                console.error(error);
+                res.status(500).send({ message: "Internal Server Error" });
+            }
+        });
+        app.post("/users", async (req, res) => {
+            const newUser = req.body;
+            newUser.createdAt = new Date()
+            const email = newUser.email
+            const existUser = await userCollection.findOne({ email })
+            if (existUser) {
+                return res.send({ message: 'user exist' })
+            }
+            const result = await userCollection.insertOne(newUser)
+            res.send(result)
+        })
        
 
         // await client.db("admin").command({ ping: 1 });
