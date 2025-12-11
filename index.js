@@ -191,6 +191,32 @@ async function run() {
             const result = await cursor.toArray();
             res.send(result);
         })
+        app.delete("/allApplication/:id", async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await applicationCollection.deleteOne(query)
+            res.send(result)
+        })
+        app.get("/statusByApplication", async (req, res) => {
+            const status = req.query.status
+            const query = {}
+            if (status) {
+                query.status = status
+            }
+            const cursor = applicationCollection.find(query)
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+        app.patch("/pendingApplication/:id", async (req, res) => {
+            const loanId = req.params.id
+            const query = { _id: new ObjectId(loanId) }
+            const updatedLoan = req.body
+            const update = {
+                $set: updatedLoan
+            }
+            const result = await applicationCollection.updateOne(query, update)
+            res.send(result)
+        })
         
 
         // await client.db("admin").command({ ping: 1 });
