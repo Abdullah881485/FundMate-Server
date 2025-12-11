@@ -47,7 +47,13 @@ app.use(express.json())
 // }
 
 
-
+const client = new MongoClient(uri, {
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
+});
 
 app.get("/", (req, res) => {
     res.send('FundMate is running')
