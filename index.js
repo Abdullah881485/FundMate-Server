@@ -170,7 +170,23 @@ async function run() {
             const result = await userCollection.insertOne(newUser)
             res.send(result)
         })
-       
+        app.patch("/users/:id", async (req, res) => {
+            const userId = req.params.id
+            const query = { _id: new ObjectId(userId) }
+            const updatedRole = req.body
+            const update = {
+                $set: updatedRole
+            }
+            const result = await userCollection.updateOne(query, update)
+            res.send(result)
+        })
+        app.get('/users/:email/role', async (req, res) => {
+            const email = req.params.email;
+            const query = { email }
+            const user = await userCollection.findOne(query);
+            res.send({ role: user?.role || 'Borrower' })
+        })
+        
 
         // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
