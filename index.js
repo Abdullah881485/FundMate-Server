@@ -68,15 +68,72 @@ async function run() {
         const applicationCollection = db.collection('allApplication')
         const userCollection = db.collection('allUsers')
 
-        
+        app.post("/allLoan", async (req, res) => {
+            const newLoan = req.body;
+            const result = await loanCollection.insertOne(newLoan)
+            res.send(result)
+        })
+        app.patch("/allLoan/:id", async (req, res) => {
+            try {
+                const loanId = req.params.id;
+                const updatedLoan = req.body;
+
+                const query = { _id: new ObjectId(loanId) };
+
+                const updatedDoc = {
+                    $set: updatedLoan,
+                };
+
+                const result = await loanCollection.updateOne(query, updatedDoc);
+                res.send(result);
+
+            } catch (error) {
+                console.log(error);
+                res.status(500).send({ message: "Internal Server Error" });
+            }
+        });
+        app.delete("/allLoan/:id", async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await loanCollection.deleteOne(query)
+            res.send(result)
+        })
+        app.get("/availableLoan", async (req, res) => {
+            const cursor = loanCollection.find({ showOnHome: true }).limit(6);
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+        app.patch("/availableLoan/:id", async (req, res) => {
+            const loanId = req.params.id;
+            const { showOnHome } = req.body;
+            // console.log(value);
+
+            const query = {
+                _id: new ObjectId(loanId)
+            }
+            const updatedDoc = {
+                $set: {
+                    showOnHome: showOnHome
+                }
+            }
+
+            const result = await loanCollection.updateOne(query, updatedDoc)
+
+            res.send(result);
+        });
         app.get("/allLoan", async (req, res) => {
             const cursor = loanCollection.find();
             const result = await cursor.toArray();
             res.send(result);
         });
 
+        app.get("/loanDetails/:id", async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await loanCollection.findOne(query)
+            res.send(result)
+        })
         
-
         // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
