@@ -59,7 +59,30 @@ app.get("/", (req, res) => {
     res.send('FundMate is running')
 })
 
+async function run() {
+    try {
+        // await client.connect();
 
+        const db = client.db("FundMate_db")
+        const loanCollection = db.collection('allLoan')
+        const applicationCollection = db.collection('allApplication')
+        const userCollection = db.collection('allUsers')
+
+        
+        app.get("/allLoan", async (req, res) => {
+            const cursor = loanCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+
+        
+
+        // await client.db("admin").command({ ping: 1 });
+        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    } finally {
+        // await client.close();
+    }
+}
 run().catch(console.dir);
 app.listen(port, () => {
     console.log(`FundMate server running on ${port}`);
