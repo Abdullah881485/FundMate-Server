@@ -186,6 +186,11 @@ async function run() {
             const user = await userCollection.findOne(query);
             res.send({ role: user?.role || 'Borrower' })
         })
+        app.get("/allApplication", async (req, res) => {
+            const cursor = applicationCollection.find()
+            const result = await cursor.toArray();
+            res.send(result);
+        })
         
 
         // await client.db("admin").command({ ping: 1 });
