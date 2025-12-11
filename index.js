@@ -217,6 +217,26 @@ async function run() {
             const result = await applicationCollection.updateOne(query, update)
             res.send(result)
         })
+        app.post("/allApplication", async (req, res) => {
+            const newApplication = req.body;
+            const result = await applicationCollection.insertOne(newApplication)
+            res.send(result)
+        })
+
+        app.get("/manageLoan", async (req, res) => {
+            const createdBy = req.query.email;
+            const query = {}
+            if (createdBy) {
+                query.createdBy = createdBy
+                // if (req.token_email !== email) {
+                //     return res.status(403).send({ message: 'Forbidden access' })
+                // }
+            }
+            const cursor = loanCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+
         
 
         // await client.db("admin").command({ ping: 1 });
