@@ -251,7 +251,7 @@ async function run() {
             res.send(result);
         });
 
-        
+
 
 
 
@@ -324,6 +324,84 @@ async function run() {
         app.get("/payment", async (req, res) => {
             console.log(req.headers);
 
+            const loanId = req.query.id
+            const query = {}
+            if (loanId) {
+                query.loanId = loanId
+            }
+            const result = await paymentCollection.findOne(query)
+            res.send(result);
+        })
+
+
+
+        // Payment related API
+
+        app.post('/applicationFee', async (req, res) => {
+            const paymentInfo = req.body;
+            const session = await stripe.checkout.sessions.create({
+                line_items: [
+                    {
+
+                        price_data: {
+                            currency: 'USD',
+                            unit_amount: 1000,
+                            product_data: {
+                                name: paymentInfo.loanTitle,
+                            }
+
+                        },
+                        quantity: 1,
+                    },
+                ],
+                customer_email: paymentInfo.email,
+                mode: 'payment',
+                metadata: {
+                    loanId: paymentInfo.loanId,
+                    loanName: paymentInfo.loanTitle,
+                },
+                success_url: `${process.env.CLIENT_DOMAIN}/dashboard-layout/success?session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: `${process.env.CLIENT_DOMAIN}/dashboard-layout/myLoans`,
+            });
+
+            res.send({ url: session.url })
+        });
+
+        app.patch('/paymentSuccess', async (req, res) => {
+            const session_id = req.query.session_id
+            // console.log(session_id);
+            const session = await stripe.checkout.sessions.retrieve(session_id)
+            // console.log(session);
+            if (session.payment_status === 'paid') {
+                const loanId = session.metadata.loanId
+                const query = { _id: new ObjectId(loanId) }
+                const update = {
+                    $set: {
+                        feeStatus: 'paid',
+
+                    }
+                }
+                const result = await applicationCollection.updateOne(query, update)
+                const paymentInfo = {
+                    fee: session.amount_total / 100,
+                    email: session.customer_email,
+                    loanId: session.metadata.loanId,
+                    loanTitle: session.metadata.loanName,
+                    transactionId: session.payment_intent,
+                    feeStatus: session.payment_status,
+                }
+
+                if (session.payment_status === 'paid') {
+                    const paymentResult = await paymentCollection.insertOne(paymentInfo)
+                    res.send({ success: true, modifyApplication: result, paymentInfo: paymentResult })
+                }
+            }
+
+
+
+            res.send({ success: true })
+        })
+        app.get("/payment", async (req, res) => {
             const loanId = req.query.id
             const query = {}
             if (loanId) {
