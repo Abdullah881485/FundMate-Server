@@ -232,9 +232,6 @@ async function run() {
             const query = {}
             if (createdBy) {
                 query.createdBy = createdBy
-                if (req.token_email !== createdBy) {
-                    return res.status(403).send({ message: 'Forbidden access' })
-                }
             }
             const cursor = loanCollection.find(query);
             const result = await cursor.toArray();
@@ -245,9 +242,6 @@ async function run() {
             const query = {}
             if (email) {
                 query.email = email
-                if (req.token_email !== email) {
-                    return res.status(403).send({ message: 'Forbidden access' })
-                }
             }
             const cursor = applicationCollection.find(query);
             const result = await cursor.toArray();
