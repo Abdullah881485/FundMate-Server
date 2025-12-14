@@ -207,7 +207,7 @@ async function run() {
             if (status) {
                 query.status = status
             }
-            const cursor = applicationCollection.find(query)
+            const cursor = applicationCollection.find(query).sort({ createdAt: -1 })
             const result = await cursor.toArray();
             res.send(result);
         })
